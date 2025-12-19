@@ -1,167 +1,453 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Blockly HTML – Learn HTML with Building Blocks</title>
-  <meta name="description" content="Learn HTML using Blockly building blocks">
-  <style>
-    html, body {
-      padding: 0;
-      margin: 0;
-    }
-    #container {
-      width: 100vw;
-      height: 100vh;
-      display: grid;
-      grid-template-columns: 50% 50%;
-      grid-template-rows: 50px 30px auto 45%;
-      grid-template-areas:
-        "blockly menubar"
-        "blockly title"
-        "blockly website"
-        "blockly code";
-    }
-    #blocklyArea { grid-area: blockly; }
-    #menubar {
-      background: #a9d0f7;
-      grid-area: menubar;
-      font-family: sans-serif;
-      font-size: 18px;
-      padding: 5px 10px;
-      display: grid;
-      grid-template-columns: auto 36% auto;
-      align-items: center;
-    }
-    #title {
-      grid-area: title;
-      width: 100%;
-      background-color: #444;
-      color: white;
-      text-align: center;
-      font-size: 20px;
-      font-family: sans-serif;
-      padding-top: 5px;
-    }
-    #websiteFrame {
-      grid-area: website;
-      border: 5px solid #444;
-    }
-    #sourcecode {
-      grid-area: code;
-      border: 5px solid lightgray;
-      overflow: scroll;
-      margin: 0;
-      padding: 5px;
-      font-family: monospace;
-    }
-    #website {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Ultimate Blockly Web Builder</title>
 
-  <!-- Blockly Core -->
-  <script src="blockly/blockly_compressed.js"></script>
-  <script src="blockly/blocks_compressed.js"></script>
-  <script src="blockly/javascript_compressed.js"></script>
-  <script src="blockly/msg/js/en.js"></script>
+<script src="https://unpkg.com/blockly/blockly.min.js"></script>
 
-  <!-- Your Blockly extensions -->
-  <script src="en.js"></script>
-  <script src="html_generators.js"></script>
-  <script src="html_blocks.js"></script>
+<style>
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  font-family: Arial, sans-serif;
+}
+#blocklyDiv {
+  width: 45%;
+  height: 100%;
+}
+#right {
+  width: 55%;
+  display: flex;
+  flex-direction: column;
+  border-left: 2px solid #ccc;
+}
+#code {
+  height: 50%;
+  padding: 10px;
+  background: #f5f5f5;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+#preview {
+  height: 50%;
+  border-top: 2px solid #ccc;
+}
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+</style>
 </head>
+
 <body>
-  <div id="container">
-    <div id="blocklyArea"></div>
-    <div id="menubar">
-      <div><span id="saveText">💾 Save blocks:</span> <input type="button" value="Save" id="saveButton" /></div>
-      <div><span id="loadText">📂 Load blocks:</span> <input type="file" id="fileButton" style="max-width:200px" /></div>
-      <div><span id="exportText">📄 Export webpage as HTML:</span> <input type="button" value="Export" id="exportButton" /></div>
-    </div>
-    <div id="title">Untitled Web Page</div>
-    <div id="websiteFrame"><iframe id="website"></iframe></div>
-    <pre id="sourcecode">Your HTML code will appear here.</pre>
-  </div>
 
-  <script>
-    // Function to load local XML files
-    function loadXMLDoc(filePath, callback) {
-      var xhr = new XMLHttpRequest();
-      xhr.open("GET", filePath, true);
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          callback(xhr.responseText);
-        }
-      };
-      xhr.send(null);
+<div id="blocklyDiv"></div>
+
+<div id="right">
+  <div id="code"></div>
+  <div id="preview"></div>
+</div>
+
+<!-- TOOLBOX -->
+<xml id="toolbox" style="display:none">
+
+<!-- CORE BLOCKLY -->
+<category name="Logic" colour="210">
+  <block type="controls_if"></block>
+  <block type="logic_compare"></block>
+  <block type="logic_operation"></block>
+  <block type="logic_boolean"></block>
+  <block type="logic_null"></block>
+</category>
+
+<category name="Loops" colour="120">
+  <block type="controls_repeat_ext"></block>
+  <block type="controls_whileUntil"></block>
+  <block type="controls_for"></block>
+  <block type="controls_forEach"></block>
+  <block type="controls_flow_statements"></block>
+</category>
+
+<category name="Math" colour="230">
+  <block type="math_number"></block>
+  <block type="math_arithmetic"></block>
+  <block type="math_single"></block>
+  <block type="math_round"></block>
+  <block type="math_random_int"></block>
+  <block type="math_random_float"></block>
+</category>
+
+<category name="Text" colour="160">
+  <block type="text"></block>
+  <block type="text_join"></block>
+  <block type="text_length"></block>
+  <block type="text_isEmpty"></block>
+  <block type="text_indexOf"></block>
+  <block type="text_charAt"></block>
+  <block type="text_changeCase"></block>
+</category>
+
+<category name="Lists" colour="260">
+  <block type="lists_create_with"></block>
+  <block type="lists_length"></block>
+  <block type="lists_getIndex"></block>
+  <block type="lists_setIndex"></block>
+</category>
+
+<category name="Variables" colour="330" custom="VARIABLE"></category>
+<category name="Functions" colour="290" custom="PROCEDURE"></category>
+
+<!-- HTML -->
+<category name="HTML" colour="20">
+  <block type="html_start"></block>
+  <block type="html_div"></block>
+  <block type="html_p"></block>
+  <block type="html_h1"></block>
+  <block type="html_img"></block>
+
+  <!-- NEW HTML -->
+  <block type="html_button"></block>
+  <block type="html_id"></block>
+</category>
+
+<!-- CSS -->
+<category name="CSS" colour="60">
+  <block type="css_style"></block>
+  <block type="css_color"></block>
+  <block type="css_background"></block>
+  <block type="css_width"></block>
+  <block type="css_height"></block>
+  <block type="css_margin"></block>
+  <block type="css_padding"></block>
+  <block type="css_border"></block>
+  <block type="css_font_size"></block>
+  <block type="css_display"></block>
+
+  <!-- NEW CSS -->
+  <block type="css_position"></block>
+  <block type="css_size"></block>
+  <block type="css_shape"></block>
+</category>
+
+<!-- MEDIA -->
+<category name="Media" colour="90">
+  <block type="media_video"></block>
+  <block type="media_audio"></block>
+
+  <!-- NEW MEDIA IMAGE -->
+  <block type="media_image"></block>
+</category>
+
+<!-- UTILITIES -->
+<category name="Utilities" colour="300">
+  <block type="util_console"></block>
+  <block type="util_alert"></block>
+  <block type="util_setTimeout"></block>
+
+  <!-- NEW JS -->
+  <block type="js_onclick"></block>
+  <block type="js_set_style"></block>
+  <block type="js_drag"></block>
+</category>
+
+</xml>
+
+<script>
+const workspace = Blockly.inject('blocklyDiv', {
+  toolbox: document.getElementById('toolbox')
+});
+
+/* ================= HTML BLOCKS ================= */
+Blockly.Blocks.html_start = {
+  init() {
+    this.appendStatementInput("BODY").appendField("HTML START");
+    this.setColour(20);
+  }
+};
+Blockly.JavaScript.html_start = block => `
+<!DOCTYPE html>
+<html>
+<body>
+${Blockly.JavaScript.statementToCode(block,"BODY")}
+</body>
+</html>
+`;
+
+Blockly.Blocks.html_div = {
+  init() {
+    this.appendStatementInput("CONTENT").appendField("div");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(20);
+  }
+};
+Blockly.JavaScript.html_div = b =>
+  `<div>${Blockly.JavaScript.statementToCode(b,"CONTENT")}</div>\n`;
+
+Blockly.Blocks.html_p = {
+  init() {
+    this.appendValueInput("TEXT").appendField("p");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(20);
+  }
+};
+Blockly.JavaScript.html_p = b =>
+  `<p>${Blockly.JavaScript.valueToCode(b,"TEXT",0)}</p>\n`;
+
+Blockly.Blocks.html_h1 = {
+  init() {
+    this.appendValueInput("TEXT").appendField("h1");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(20);
+  }
+};
+Blockly.JavaScript.html_h1 = b =>
+  `<h1>${Blockly.JavaScript.valueToCode(b,"TEXT",0)}</h1>\n`;
+
+Blockly.Blocks.html_img = {
+  init() {
+    this.appendValueInput("SRC").appendField("img src");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(20);
+  }
+};
+Blockly.JavaScript.html_img = b =>
+  `<img src="${Blockly.JavaScript.valueToCode(b,"SRC",0)}">\n`;
+
+/* ================= CSS BLOCKS ================= */
+Blockly.Blocks.css_style = {
+  init() {
+    this.appendStatementInput("CSS").appendField("style");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(60);
+  }
+};
+Blockly.JavaScript.css_style = b =>
+  `<style>${Blockly.JavaScript.statementToCode(b,"CSS")}</style>\n`;
+
+function cssBlock(name, prop) {
+  Blockly.Blocks[name] = {
+    init() {
+      this.appendValueInput("VAL").appendField(prop);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour(60);
     }
+  };
+  Blockly.JavaScript[name] = b =>
+    `${prop}:${Blockly.JavaScript.valueToCode(b,"VAL",0)};\n`;
+}
 
-    // Load toolbox first
-    loadXMLDoc('toolbox.xml', function(toolboxText) {
-      var parser = new DOMParser();
-      var toolboxXml = parser.parseFromString(toolboxText, "text/xml").documentElement;
+cssBlock("css_color","color");
+cssBlock("css_background","background");
+cssBlock("css_width","width");
+cssBlock("css_height","height");
+cssBlock("css_margin","margin");
+cssBlock("css_padding","padding");
+cssBlock("css_border","border");
+cssBlock("css_font_size","font-size");
+cssBlock("css_display","display");
 
-      // Inject Blockly workspace
-      var blocklyArea = document.getElementById('blocklyArea');
-      var workspace = Blockly.inject(blocklyArea, {
-        toolbox: toolboxXml,
-        collapse: true,
-        maxBlocks: Infinity,
-        trashcan: true,
-        media: 'blockly/media/',
-        scrollbars: true,
-        rtl: false,
-        sounds: true,
-        oneBasedIndex: true
-      });
+/* ================= MEDIA ================= */
+Blockly.Blocks.media_video = {
+  init() {
+    this.appendValueInput("SRC").appendField("video src");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(90);
+  }
+};
+Blockly.JavaScript.media_video = b =>
+  `<video controls src="${Blockly.JavaScript.valueToCode(b,"SRC",0)}"></video>\n`;
 
-      // Load workspace.xml if exists
-      loadXMLDoc('workspace.xml', function(wsText) {
-        var wsXml = Blockly.Xml.textToDom(wsText);
-        Blockly.Xml.domToWorkspace(wsXml, workspace);
-      });
+Blockly.Blocks.media_audio = {
+  init() {
+    this.appendValueInput("SRC").appendField("audio src");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(90);
+  }
+};
+Blockly.JavaScript.media_audio = b =>
+  `<audio controls src="${Blockly.JavaScript.valueToCode(b,"SRC",0)}"></audio>\n`;
 
-      // Update iframe and source code
-      function updateWorkspace(event) {
-        var code = HtmlGenerator.workspaceToCode(workspace);
-        document.getElementById('sourcecode').innerText = code;
-        document.getElementById('website').src = "data:text/html;charset=utf-8," + encodeURIComponent(code);
+/* NEW MEDIA IMAGE */
+Blockly.Blocks.media_image = {
+  init() {
+    this.appendValueInput("SRC").appendField("image src");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(90);
+  }
+};
+Blockly.JavaScript.media_image = b =>
+  `<img src="${Blockly.JavaScript.valueToCode(b,"SRC",0)}">\n`;
 
-        var xmlDom = Blockly.Xml.workspaceToDom(workspace);
-        localStorage.setItem('blockly-html-code', Blockly.Xml.domToText(xmlDom));
-      }
+/* ================= UTILITIES ================= */
+Blockly.Blocks.util_console = {
+  init() {
+    this.appendValueInput("MSG").appendField("console.log");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(300);
+  }
+};
+Blockly.JavaScript.util_console = b =>
+  `console.log(${Blockly.JavaScript.valueToCode(b,"MSG",0)});\n`;
 
-      workspace.addChangeListener(updateWorkspace);
+Blockly.Blocks.util_alert = {
+  init() {
+    this.appendValueInput("MSG").appendField("alert");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(300);
+  }
+};
+Blockly.JavaScript.util_alert = b =>
+  `alert(${Blockly.JavaScript.valueToCode(b,"MSG",0)});\n`;
 
-      // Save workspace XML
-      document.getElementById("saveButton").onclick = function() {
-        var xmlDom = Blockly.Xml.workspaceToDom(workspace);
-        var xmlText = Blockly.Xml.domToText(xmlDom);
-        window.open("data:application/octet-stream," + encodeURIComponent(xmlText), 'workspace.blockly.xml');
-      };
+Blockly.Blocks.util_setTimeout = {
+  init() {
+    this.appendValueInput("MS").appendField("setTimeout ms");
+    this.appendStatementInput("DO").appendField("do");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(300);
+  }
+};
+Blockly.JavaScript.util_setTimeout = b =>
+  `setTimeout(()=>{${Blockly.JavaScript.statementToCode(b,"DO")}},${Blockly.JavaScript.valueToCode(b,"MS",0)});\n`;
 
-      // Export HTML
-      document.getElementById("exportButton").onclick = function() {
-        var code = HtmlGenerator.workspaceToCode(workspace);
-        window.open("data:application/octet-stream," + encodeURIComponent(code), 'webpage.html');
-      };
+/* ================= NEW HTML/CSS/JS BLOCKS ================= */
+/* Button, ID, CSS position/size/shape, JS onclick/set-style/drag */
 
-      // Load workspace from file
-      document.getElementById('fileButton').addEventListener('change', function(e) {
-        var file = e.target.files[0];
-        if (!file) return;
-        var reader = new FileReader();
-        reader.onload = function(ev) {
-          var xmlText = ev.target.result;
-          var xmlDom = Blockly.Xml.textToDom(xmlText);
-          Blockly.Xml.domToWorkspace(xmlDom, workspace);
-        };
-        reader.readAsText(file);
-      }, false);
+Blockly.Blocks.html_button = {
+  init() {
+    this.appendValueInput("TEXT").appendField("button");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(20);
+  }
+};
+Blockly.JavaScript.html_button = b =>
+  `<button>${Blockly.JavaScript.valueToCode(b,"TEXT",0)}</button>\n`;
 
-    });
-  </script>
+Blockly.Blocks.html_id = {
+  init() {
+    this.appendValueInput("ID").appendField("id");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(20);
+  }
+};
+Blockly.JavaScript.html_id = b =>
+  ` id="${Blockly.JavaScript.valueToCode(b,"ID",0)}" `;
+
+Blockly.Blocks.css_position = {
+  init() {
+    this.appendValueInput("X").appendField("x");
+    this.appendValueInput("Y").appendField("y");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(60);
+  }
+};
+Blockly.JavaScript.css_position = b =>
+  `position:absolute;left:${Blockly.JavaScript.valueToCode(b,"X",0)};top:${Blockly.JavaScript.valueToCode(b,"Y",0)};\n`;
+
+Blockly.Blocks.css_size = {
+  init() {
+    this.appendValueInput("W").appendField("width");
+    this.appendValueInput("H").appendField("height");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(60);
+  }
+};
+Blockly.JavaScript.css_size = b =>
+  `width:${Blockly.JavaScript.valueToCode(b,"W",0)};height:${Blockly.JavaScript.valueToCode(b,"H",0)};\n`;
+
+Blockly.Blocks.css_shape = {
+  init() {
+    this.appendDummyInput()
+      .appendField("shape")
+      .appendField(new Blockly.FieldDropdown([
+        ["rectangle","0"],
+        ["rounded","12px"],
+        ["circle","50%"]
+      ]),"R");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(60);
+  }
+};
+Blockly.JavaScript.css_shape = b =>
+  `border-radius:${b.getFieldValue("R")};\n`;
+
+Blockly.Blocks.js_onclick = {
+  init() {
+    this.appendValueInput("ID").appendField("on click id");
+    this.appendStatementInput("DO").appendField("do");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(300);
+  }
+};
+Blockly.JavaScript.js_onclick = b =>
+`document.getElementById(${Blockly.JavaScript.valueToCode(b,"ID",0)}).onclick=function(){
+${Blockly.JavaScript.statementToCode(b,"DO")}
+};\n`;
+
+Blockly.Blocks.js_set_style = {
+  init() {
+    this.appendValueInput("ID").appendField("set style id");
+    this.appendValueInput("P").appendField("property");
+    this.appendValueInput("V").appendField("value");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(300);
+  }
+};
+Blockly.JavaScript.js_set_style = b =>
+`document.getElementById(${Blockly.JavaScript.valueToCode(b,"ID",0)}).style[
+${Blockly.JavaScript.valueToCode(b,"P",0)}]=${Blockly.JavaScript.valueToCode(b,"V",0)};
+`;
+
+Blockly.Blocks.js_drag = {
+  init() {
+    this.appendValueInput("ID").appendField("drag id");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(300);
+  }
+};
+Blockly.JavaScript.js_drag = b =>
+`(()=>{const e=document.getElementById(${Blockly.JavaScript.valueToCode(b,"ID",0)});
+let d=false;e.onmousedown=()=>d=true;
+document.onmouseup=()=>d=false;
+document.onmousemove=m=>{
+if(d){e.style.left=m.pageX+"px";e.style.top=m.pageY+"px";}
+};})();`;
+
+/* ================= LIVE PREVIEW ================= */
+function update() {
+  const code = Blockly.JavaScript.workspaceToCode(workspace);
+  document.getElementById("code").textContent = code;
+  const iframe = document.createElement("iframe");
+  iframe.srcdoc = code;
+  const p = document.getElementById("preview");
+  p.innerHTML = "";
+  p.appendChild(iframe);
+}
+workspace.addChangeListener(update);
+</script>
+
 </body>
 </html>
