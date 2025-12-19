@@ -3,49 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <title>Ultimate Blockly Web Builder</title>
-
 <script src="https://unpkg.com/blockly/blockly.min.js"></script>
-
 <style>
-body {
-  margin: 0;
-  height: 100vh;
-  display: flex;
-  font-family: Arial, sans-serif;
-}
-#blocklyDiv {
-  width: 45%;
-  height: 100%;
-}
-#right {
-  width: 55%;
-  display: flex;
-  flex-direction: column;
-  border-left: 2px solid #ccc;
-}
-#code {
-  height: 50%;
-  padding: 10px;
-  background: #f5f5f5;
-  overflow: auto;
-  white-space: pre-wrap;
-}
-#preview {
-  height: 50%;
-  border-top: 2px solid #ccc;
-}
-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
+body { margin:0; height:100vh; display:flex; font-family:Arial,sans-serif; }
+#blocklyDiv { width:45%; height:100%; }
+#right { width:55%; display:flex; flex-direction:column; border-left:2px solid #ccc; }
+#code { height:50%; padding:10px; background:#f5f5f5; overflow:auto; white-space:pre-wrap; }
+#preview { height:50%; border-top:2px solid #ccc; }
+iframe { width:100%; height:100%; border:none; }
 </style>
 </head>
-
 <body>
 
 <div id="blocklyDiv"></div>
-
 <div id="right">
   <div id="code"></div>
   <div id="preview"></div>
@@ -53,8 +23,6 @@ iframe {
 
 <!-- TOOLBOX -->
 <xml id="toolbox" style="display:none">
-
-<!-- CORE BLOCKLY -->
 <category name="Logic" colour="210">
   <block type="controls_if"></block>
   <block type="logic_compare"></block>
@@ -62,7 +30,6 @@ iframe {
   <block type="logic_boolean"></block>
   <block type="logic_null"></block>
 </category>
-
 <category name="Loops" colour="120">
   <block type="controls_repeat_ext"></block>
   <block type="controls_whileUntil"></block>
@@ -70,7 +37,6 @@ iframe {
   <block type="controls_forEach"></block>
   <block type="controls_flow_statements"></block>
 </category>
-
 <category name="Math" colour="230">
   <block type="math_number"></block>
   <block type="math_arithmetic"></block>
@@ -79,7 +45,6 @@ iframe {
   <block type="math_random_int"></block>
   <block type="math_random_float"></block>
 </category>
-
 <category name="Text" colour="160">
   <block type="text"></block>
   <block type="text_join"></block>
@@ -89,14 +54,12 @@ iframe {
   <block type="text_charAt"></block>
   <block type="text_changeCase"></block>
 </category>
-
 <category name="Lists" colour="260">
   <block type="lists_create_with"></block>
   <block type="lists_length"></block>
   <block type="lists_getIndex"></block>
   <block type="lists_setIndex"></block>
 </category>
-
 <category name="Variables" colour="330" custom="VARIABLE"></category>
 <category name="Functions" colour="290" custom="PROCEDURE"></category>
 
@@ -106,12 +69,11 @@ iframe {
   <block type="html_div"></block>
   <block type="html_p"></block>
   <block type="html_h1"></block>
-  <block type="html_img"></block>
-  <block type="html_button"></block>
-  <block type="html_id"></block>
   <block type="html_h2"></block>
   <block type="html_span"></block>
   <block type="html_a"></block>
+  <block type="html_img"></block>
+  <block type="html_button"></block>
 </category>
 
 <!-- CSS 1 -->
@@ -168,130 +130,163 @@ iframe {
   <block type="js_set_text"></block>
   <block type="js_get_value"></block>
 </category>
-
 </xml>
 
 <script>
-const workspace = Blockly.inject('blocklyDiv', {
-  toolbox: document.getElementById('toolbox')
-});
+const workspace = Blockly.inject('blocklyDiv', { toolbox: document.getElementById('toolbox') });
 
-// ===== HTML BLOCKS =====
-Blockly.Blocks.html_start = { init() { this.appendStatementInput("BODY").appendField("HTML START"); this.setColour(20); } };
+/* ================= HTML BLOCKS ================= */
+Blockly.Blocks.html_start = {
+  init() { this.appendStatementInput("BODY").appendField("HTML START"); this.setColour(20); }
+};
 Blockly.JavaScript.html_start = block => `<!DOCTYPE html><html><body>${Blockly.JavaScript.statementToCode(block,"BODY")}</body></html>\n`;
 
-Blockly.Blocks.html_div = { init() { this.appendStatementInput("CONTENT").appendField("div"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(20); } };
-Blockly.JavaScript.html_div = b => `<div>${Blockly.JavaScript.statementToCode(b,"CONTENT")}</div>\n`;
+function htmlTextBlock(name, tag){
+  Blockly.Blocks[name] = {
+    init(){
+      this.appendValueInput("TEXT").setCheck("String").appendField(tag);
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+      this.setColour(20);
+    }
+  };
+  Blockly.JavaScript[name] = b => `<${tag}>${Blockly.JavaScript.valueToCode(b,"TEXT",0)}</${tag}>\n`;
+}
 
-Blockly.Blocks.html_p = { init() { this.appendValueInput("TEXT").appendField("p"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(20); } };
-Blockly.JavaScript.html_p = b => `<p>${Blockly.JavaScript.valueToCode(b,"TEXT",0)}</p>\n`;
+htmlTextBlock("html_p","p");
+htmlTextBlock("html_h1","h1");
+htmlTextBlock("html_h2","h2");
+htmlTextBlock("html_span","span");
 
-Blockly.Blocks.html_h1 = { init() { this.appendValueInput("TEXT").appendField("h1"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(20); } };
-Blockly.JavaScript.html_h1 = b => `<h1>${Blockly.JavaScript.valueToCode(b,"TEXT",0)}</h1>\n`;
+Blockly.Blocks.html_a = {
+  init(){
+    this.appendValueInput("HREF").setCheck("String").appendField("a href");
+    this.appendValueInput("TEXT").setCheck("String").appendField("text");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(20);
+  }
+};
+Blockly.JavaScript.html_a = b =>
+  `<a href="${Blockly.JavaScript.valueToCode(b,"HREF",0)}">${Blockly.JavaScript.valueToCode(b,"TEXT",0)}</a>\n`;
 
-Blockly.Blocks.html_img = { init() { this.appendValueInput("SRC").appendField("img src"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(20); } };
-Blockly.JavaScript.html_img = b => `<img src="${Blockly.JavaScript.valueToCode(b,"SRC",0)}">\n`;
+Blockly.Blocks.html_img = {
+  init(){
+    this.appendValueInput("SRC").setCheck("String").appendField("img src");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(20);
+  }
+};
+Blockly.JavaScript.html_img = b =>
+  `<img src="${Blockly.JavaScript.valueToCode(b,"SRC",0)}">\n`;
 
-Blockly.Blocks.html_button = { init() { this.appendValueInput("TEXT").appendField("button"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(20); } };
-Blockly.JavaScript.html_button = b => `<button>${Blockly.JavaScript.valueToCode(b,"TEXT",0)}</button>\n`;
+Blockly.Blocks.html_button = {
+  init(){
+    this.appendValueInput("TEXT").setCheck("String").appendField("button");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(20);
+  }
+};
+Blockly.JavaScript.html_button = b =>
+  `<button>${Blockly.JavaScript.valueToCode(b,"TEXT",0)}</button>\n`;
 
-Blockly.Blocks.html_id = { init() { this.appendValueInput("ID").appendField("id"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(20); } };
-Blockly.JavaScript.html_id = b => ` id="${Blockly.JavaScript.valueToCode(b,"ID",0)}" `;
+Blockly.Blocks.html_div = {
+  init(){
+    this.appendStatementInput("CONTENT").appendField("div");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(20);
+  }
+};
+Blockly.JavaScript.html_div = b =>
+  `<div>${Blockly.JavaScript.statementToCode(b,"CONTENT")}</div>\n`;
 
-Blockly.Blocks.html_h2 = { init() { this.appendValueInput("TEXT").appendField("h2"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(20); } };
-Blockly.JavaScript.html_h2 = b => `<h2>${Blockly.JavaScript.valueToCode(b,"TEXT",0)}</h2>\n`;
-
-Blockly.Blocks.html_span = { init() { this.appendValueInput("TEXT").appendField("span"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(20); } };
-Blockly.JavaScript.html_span = b => `<span>${Blockly.JavaScript.valueToCode(b,"TEXT",0)}</span>\n`;
-
-Blockly.Blocks.html_a = { init() { this.appendValueInput("HREF").appendField("a href"); this.appendValueInput("TEXT").appendField("text"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(20); } };
-Blockly.JavaScript.html_a = b => `<a href="${Blockly.JavaScript.valueToCode(b,"HREF",0)}">${Blockly.JavaScript.valueToCode(b,"TEXT",0)}</a>\n`;
-
-// ===== CSS BLOCKS =====
+/* ================= CSS BLOCKS ================= */
 Blockly.Blocks.css_style = { init() { this.appendStatementInput("CSS").appendField("style"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(60); } };
 Blockly.JavaScript.css_style = b => `<style>${Blockly.JavaScript.statementToCode(b,"CSS")}</style>\n`;
 
-function cssBlock(name, prop) { Blockly.Blocks[name] = { init() { this.appendValueInput("VAL").appendField(prop); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(60); } }; Blockly.JavaScript[name] = b => `${prop}:${Blockly.JavaScript.valueToCode(b,"VAL",0)};\n`; }
+function cssBlock(name,prop){
+  Blockly.Blocks[name] = { init(){ this.appendValueInput("VAL").appendField(prop); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(60); } };
+  Blockly.JavaScript[name] = b => `${prop}:${Blockly.JavaScript.valueToCode(b,"VAL",0)};\n`;
+}
 
-cssBlock("css_color","color");
-cssBlock("css_background","background");
-cssBlock("css_width","width");
-cssBlock("css_height","height");
-cssBlock("css_margin","margin");
-cssBlock("css_padding","padding");
-cssBlock("css_border","border");
-cssBlock("css_font_size","font-size");
+cssBlock("css_color","color"); cssBlock("css_background","background");
+cssBlock("css_width","width"); cssBlock("css_height","height");
+cssBlock("css_margin","margin"); cssBlock("css_padding","padding");
+cssBlock("css_border","border"); cssBlock("css_font_size","font-size");
 cssBlock("css_display","display");
 
-Blockly.Blocks.css_position = { init() { this.appendValueInput("X").appendField("x"); this.appendValueInput("Y").appendField("y"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(60); } };
+Blockly.Blocks.css_position = { init(){ this.appendValueInput("X").appendField("x"); this.appendValueInput("Y").appendField("y"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(60); } };
 Blockly.JavaScript.css_position = b => `position:absolute;left:${Blockly.JavaScript.valueToCode(b,"X",0)};top:${Blockly.JavaScript.valueToCode(b,"Y",0)};\n`;
 
-Blockly.Blocks.css_size = { init() { this.appendValueInput("W").appendField("width"); this.appendValueInput("H").appendField("height"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(60); } };
+Blockly.Blocks.css_size = { init(){ this.appendValueInput("W").appendField("width"); this.appendValueInput("H").appendField("height"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(60); } };
 Blockly.JavaScript.css_size = b => `width:${Blockly.JavaScript.valueToCode(b,"W",0)};height:${Blockly.JavaScript.valueToCode(b,"H",0)};\n`;
 
-Blockly.Blocks.css_shape = { init() { this.appendDummyInput().appendField("shape").appendField(new Blockly.FieldDropdown([["rectangle","0"],["rounded","12px"],["circle","50%"]]),"R"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(60); } };
+Blockly.Blocks.css_shape = { init(){ this.appendDummyInput().appendField("shape").appendField(new Blockly.FieldDropdown([["rectangle","0"],["rounded","12px"],["circle","50%"]]),"R"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(60); } };
 Blockly.JavaScript.css_shape = b => `border-radius:${b.getFieldValue("R")};\n`;
 
-// ===== MEDIA =====
-Blockly.Blocks.media_video = { init() { this.appendValueInput("SRC").appendField("video src"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(90); } };
+/* ================= MEDIA BLOCKS ================= */
+Blockly.Blocks.media_video = { init(){ this.appendValueInput("SRC").setCheck("String").appendField("video src"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(90); } };
 Blockly.JavaScript.media_video = b => `<video controls src="${Blockly.JavaScript.valueToCode(b,"SRC",0)}"></video>\n`;
 
-Blockly.Blocks.media_audio = { init() { this.appendValueInput("SRC").appendField("audio src"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(90); } };
+Blockly.Blocks.media_audio = { init(){ this.appendValueInput("SRC").setCheck("String").appendField("audio src"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(90); } };
 Blockly.JavaScript.media_audio = b => `<audio controls src="${Blockly.JavaScript.valueToCode(b,"SRC",0)}"></audio>\n`;
 
-Blockly.Blocks.media_image = { init() { this.appendValueInput("SRC").appendField("image src"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(90); } };
+Blockly.Blocks.media_image = { init(){ this.appendValueInput("SRC").setCheck("String").appendField("image src"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(90); } };
 Blockly.JavaScript.media_image = b => `<img src="${Blockly.JavaScript.valueToCode(b,"SRC",0)}">\n`;
 
-// ===== UTILITIES 1 =====
-Blockly.Blocks.util_console = { init() { this.appendValueInput("MSG").appendField("console.log"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
+/* ================= UTILITIES 1 ================= */
+Blockly.Blocks.util_console = { init(){ this.appendValueInput("MSG").setCheck("String").appendField("console.log"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
 Blockly.JavaScript.util_console = b => `console.log(${Blockly.JavaScript.valueToCode(b,"MSG",0)});\n`;
 
-Blockly.Blocks.util_alert = { init() { this.appendValueInput("MSG").appendField("alert"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
+Blockly.Blocks.util_alert = { init(){ this.appendValueInput("MSG").setCheck("String").appendField("alert"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
 Blockly.JavaScript.util_alert = b => `alert(${Blockly.JavaScript.valueToCode(b,"MSG",0)});\n`;
 
-Blockly.Blocks.util_setTimeout = { init() { this.appendValueInput("MS").appendField("setTimeout ms"); this.appendStatementInput("DO").appendField("do"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
+Blockly.Blocks.util_setTimeout = { init(){ this.appendValueInput("MS").appendField("setTimeout ms"); this.appendStatementInput("DO").appendField("do"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
 Blockly.JavaScript.util_setTimeout = b => `setTimeout(()=>{${Blockly.JavaScript.statementToCode(b,"DO")}},${Blockly.JavaScript.valueToCode(b,"MS",0)});\n`;
 
-Blockly.Blocks.js_wait = { init() { this.appendValueInput("MS").appendField("wait ms"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
+Blockly.Blocks.js_wait = { init(){ this.appendValueInput("MS").appendField("wait ms"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
 Blockly.JavaScript.js_wait = b => `await new Promise(r=>setTimeout(r,${Blockly.JavaScript.valueToCode(b,"MS",0)}));\n`;
 
-// ===== UTILITIES 2 =====
-Blockly.Blocks.js_onclick = { init() { this.appendValueInput("ID").appendField("on click id"); this.appendStatementInput("DO").appendField("do"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
+/* ================= UTILITIES 2 ================= */
+Blockly.Blocks.js_onclick = { init(){ this.appendValueInput("ID").appendField("on click id"); this.appendStatementInput("DO").appendField("do"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
 Blockly.JavaScript.js_onclick = b => `document.getElementById(${Blockly.JavaScript.valueToCode(b,"ID",0)}).onclick=function(){${Blockly.JavaScript.statementToCode(b,"DO")}};\n`;
 
-Blockly.Blocks.js_onmouseover = { init() { this.appendValueInput("ID").appendField("on mouse over id"); this.appendStatementInput("DO").appendField("do"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
+Blockly.Blocks.js_onmouseover = { init(){ this.appendValueInput("ID").appendField("on mouse over id"); this.appendStatementInput("DO").appendField("do"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
 Blockly.JavaScript.js_onmouseover = b => `document.getElementById(${Blockly.JavaScript.valueToCode(b,"ID",0)}).onmouseover=function(){${Blockly.JavaScript.statementToCode(b,"DO")}};\n`;
 
-Blockly.Blocks.js_onkeydown = { init() { this.appendValueInput("KEY").appendField("on key down"); this.appendStatementInput("DO").appendField("do"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
-Blockly.JavaScript.js_onkeydown = b => `document.addEventListener("keydown", function(event){if(event.key===${Blockly.JavaScript.valueToCode(b,"KEY",0)}){${Blockly.JavaScript.statementToCode(b,"DO")}}});\n`;
+Blockly.Blocks.js_onkeydown = { init(){ this.appendValueInput("KEY").setCheck("String").appendField("on key down"); this.appendStatementInput("DO").appendField("do"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
+Blockly.JavaScript.js_onkeydown = b => `document.addEventListener("keydown",function(event){if(event.key===${Blockly.JavaScript.valueToCode(b,"KEY",0)}){${Blockly.JavaScript.statementToCode(b,"DO")}}});\n`;
 
-Blockly.Blocks.js_set_style = { init() { this.appendValueInput("ID").appendField("set style id"); this.appendValueInput("P").appendField("property"); this.appendValueInput("V").appendField("value"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
+Blockly.Blocks.js_set_style = { init(){ this.appendValueInput("ID").appendField("set style id"); this.appendValueInput("P").appendField("property"); this.appendValueInput("V").appendField("value"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
 Blockly.JavaScript.js_set_style = b => `document.getElementById(${Blockly.JavaScript.valueToCode(b,"ID",0)}).style[${Blockly.JavaScript.valueToCode(b,"P",0)}]=${Blockly.JavaScript.valueToCode(b,"V",0)};\n`;
 
-Blockly.Blocks.js_drag = { init() { this.appendValueInput("ID").appendField("drag id"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
+Blockly.Blocks.js_drag = { init(){ this.appendValueInput("ID").appendField("drag id"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
 Blockly.JavaScript.js_drag = b => `(()=>{const e=document.getElementById(${Blockly.JavaScript.valueToCode(b,"ID",0)});let d=false;e.onmousedown=()=>d=true;document.onmouseup=()=>d=false;document.onmousemove=m=>{if(d){e.style.left=m.pageX+"px";e.style.top=m.pageY+"px";}}})();`;
 
-// ===== EXTRA JS =====
-Blockly.Blocks.js_api = { init() { this.appendValueInput("URL").appendField("API url"); this.appendStatementInput("DO").appendField("then"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
+/* ================= EXTRA JS ================= */
+Blockly.Blocks.js_api = { init(){ this.appendValueInput("URL").setCheck("String").appendField("API url"); this.appendStatementInput("DO").appendField("then"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
 Blockly.JavaScript.js_api = b => `fetch(${Blockly.JavaScript.valueToCode(b,"URL",0)}).then(r=>r.json()).then(data=>{${Blockly.JavaScript.statementToCode(b,"DO")}});\n`;
 
-Blockly.Blocks.js_custom = { init() { this.appendValueInput("CODE").appendField("custom JS"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
+Blockly.Blocks.js_custom = { init(){ this.appendValueInput("CODE").appendField("custom JS"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
 Blockly.JavaScript.js_custom = b => `${Blockly.JavaScript.valueToCode(b,"CODE",0)};\n`;
 
-Blockly.Blocks.js_create_element = { init() { this.appendValueInput("TAG").appendField("create element tag"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
-Blockly.JavaScript.js_create_element = b => `const ${Blockly.JavaScript.valueToCode(b,"TAG",0)} = document.createElement(${Blockly.JavaScript.valueToCode(b,"TAG",0)});\n`;
+Blockly.Blocks.js_create_element = { init(){ this.appendValueInput("TAG").setCheck("String").appendField("create element tag"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
+Blockly.JavaScript.js_create_element = b => `const ${Blockly.JavaScript.valueToCode(b,"TAG",0)}=document.createElement(${Blockly.JavaScript.valueToCode(b,"TAG",0)});\n`;
 
-Blockly.Blocks.js_append_child = { init() { this.appendValueInput("PARENT").appendField("append to parent"); this.appendValueInput("CHILD").appendField("child"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
+Blockly.Blocks.js_append_child = { init(){ this.appendValueInput("PARENT").appendField("append to parent"); this.appendValueInput("CHILD").appendField("child"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
 Blockly.JavaScript.js_append_child = b => `${Blockly.JavaScript.valueToCode(b,"PARENT",0)}.appendChild(${Blockly.JavaScript.valueToCode(b,"CHILD",0)});\n`;
 
-Blockly.Blocks.js_set_text = { init() { this.appendValueInput("ID").appendField("set text id"); this.appendValueInput("TEXT").appendField("text"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
+Blockly.Blocks.js_set_text = { init(){ this.appendValueInput("ID").appendField("set text id"); this.appendValueInput("TEXT").appendField("text"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(300); } };
 Blockly.JavaScript.js_set_text = b => `document.getElementById(${Blockly.JavaScript.valueToCode(b,"ID",0)}).textContent=${Blockly.JavaScript.valueToCode(b,"TEXT",0)};\n`;
 
-Blockly.Blocks.js_get_value = { init() { this.appendValueInput("ID").appendField("get value id"); this.setOutput(true,null); this.setColour(300); } };
+Blockly.Blocks.js_get_value = { init(){ this.appendValueInput("ID").appendField("get value id"); this.setOutput(true,null); this.setColour(300); } };
 Blockly.JavaScript.js_get_value = b => `document.getElementById(${Blockly.JavaScript.valueToCode(b,"ID",0)}).value`;
 
-// ===== LIVE PREVIEW =====
-function update() {
+/* ================= LIVE PREVIEW ================= */
+function update(){
   const code = Blockly.JavaScript.workspaceToCode(workspace);
   document.getElementById("code").textContent = code;
   const iframe = document.createElement("iframe");
@@ -302,6 +297,5 @@ function update() {
 }
 workspace.addChangeListener(update);
 </script>
-
 </body>
 </html>
